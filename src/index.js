@@ -1,4 +1,4 @@
-import * as solparser from 'solidity-parser-sc'
+import * as solparser from 'solidity-parser-antlr'
 import { Graph } from  'graphlib'
 import * as dot from  'graphlib-dot'
 
@@ -22,16 +22,16 @@ const wrap = val => Array.isArray(val) ? val : [val]
 
 /** Converts an AST to array. */
 const flatten = ast => {
-  const children = wrap(ast.body || ast.expression || ast.left || ast.right || ast.literal || [])
+  const children = wrap(ast.body || ast.children || ast.subNodes || ast.statements || ast.expression || ast.eventCall || ast.left || ast.right || ast.literal || [])
   return [ast].concat(...children.map(flatten))
 }
 
 /** Finds all call expression nodes in an AST. */
 const callees = ast => {
   return flatten(ast).filter(node => {
-    return node.type === 'CallExpression' &&
-      node.callee.name !== 'require' &&
-      node.callee.name !== 'assert'
+    return node.type === 'FunctionCall' &&
+      node.expression.name !== 'require' &&
+      node.expression.name !== 'assert'
   })
 }
 
@@ -45,34 +45,36 @@ export default source => {
   // parse the Solidity source
   let ast
   try {
-    ast = solparser.parse(source)
+    ast = solparser.parse(source, {tolerant: true})
   } catch (e) {
-    console.error('Parse error. Please report to https://github.com/sc-forks/solidity-parser.')
+    console.error('Parse error. Please report to https://github.com/federicobond/solidity-parser-antlr.')
     console.error(e)
     process.exit(1)
   }
 
   // get a list of all function nodes
-  const functionNodes = flatten(ast).filter(propEquals('type', 'FunctionDeclaration'))
+  const functionNodes = flatten(ast).filter(propEquals('type', 'FunctionDefinition'))
 
   // analyze the security of the functions
   const analyzedNodes = functionNodes.map(node => {
-    const functionCallees = callees(node).map(node => node.callee)
+    const functionCallees = callees(node).map(node => node.expression)
+
     return {
       name: graphNodeName(node.name),
       callees:functionCallees,
       send: functionCallees.some(callee => {
-        return (callee.name || callee.property && callee.property.name) === 'send'
+        return (callee.memberName || callee.expression && callee.expression.memberName) === 'send';
       }),
       transfer: functionCallees.some(callee => {
-        return (callee.name || callee.property && callee.property.name) === 'transfer'
+        return (callee.memberName || callee.expression && callee.expression.memberName) === 'transfer';
       }),
-      constant: node.modifiers && node.modifiers.some(propEquals('name', 'constant')),
-      internal: node.modifiers && node.modifiers.some(propEquals('name', 'internal')),
-      view: node.modifiers && node.modifiers.some(propEquals('name', 'view')),
-      pure: node.modifiers && node.modifiers.some(propEquals('name', 'pure')),
-      payable: node.modifiers && node.modifiers.some(propEquals('name', 'payable'))
-    }
+      constant: propEquals('stateMutability', 'constant')(node), // not sure
+      internal: propEquals('visibility', 'internal')(node),
+      view: propEquals('stateMutability', 'view')(node),
+      pure: propEquals('stateMutability', 'pure')(node), // not sure
+      payable: propEquals('stateMutability', 'payable')(node),
+      isconstructor: propEquals('isConstructor', true)(node)
+   }
   })
 
   // console.log(JSON.stringify(ast, null, 2))
@@ -80,10 +82,10 @@ export default source => {
 
   // generate a graph
   var digraph = new Graph()
-  analyzedNodes.forEach(({ name, callees, send, constant, internal, view, pure, transfer, payable }) => {
+  analyzedNodes.forEach(({ name, callees, send, constant, internal, view, pure, transfer, payable, isconstructor }) => {
 
     // node
-    digraph.setNode(graphNodeName(name),
+    digraph.setNode(isconstructor ? "constructor" : graphNodeName(name),
       send ? { color: COLORS.SEND } :
       constant ? { color: COLORS.CONSTANT } :
       internal ? { color: COLORS.INTERNAL } :
@@ -96,7 +98,7 @@ export default source => {
 
     // edge
     callees.forEach(callee => {
-      const calleeName = callee.property && callee.property.name || callee.name
+      const calleeName = callee.expression && callee.expression.memberName || callee.memberName || callee.name;
       digraph.setEdge(name, graphNodeName(calleeName))
     })
   })
