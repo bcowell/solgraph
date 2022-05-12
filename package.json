@@ -3,12 +3,21 @@
   "version": "0.3.3",
   "description": "Visualize Solidity control flow for smart contract security analysis.",
   "license": "ISC",
-  "repository": "https://github.com/raineorshine/solgraph",
-  "author": {
-    "name": "Raine Revere",
-    "email": "raineorshine@gmail.com",
-    "url": "https://github.com/raineorshine"
-  },
+  "repository": "https://github.com/bcowell/solgraph",
+  "contributors": [
+    {
+      "name": "Raine Revere",
+      "url": "https://github.com/raineorshine"
+    },
+    {
+      "name": "Alecsis",
+      "url": "https://github.com/Alecsis"
+    },
+    {
+      "name": "Brayden Cowell",
+      "url": "https://github.com/bcowell"
+    }
+  ],
   "engines": {
     "node": ">=6"
   },
@@ -45,5 +54,8 @@
     "graphlib": "^2.1.5",
     "graphlib-dot": "^0.6.2",
     "solidity-parser-antlr": "^0.4.11"
+  },
+  "publishConfig": {
+    "registry":"https://npm.pkg.github.com"
   }
 }
