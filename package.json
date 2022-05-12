@@ -1,6 +1,6 @@
 {
   "name": "@~bcowell/solgraph",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Visualize Solidity control flow for smart contract security analysis.",
   "license": "ISC",
   "repository": "https://github.com/bcowell/solgraph",
