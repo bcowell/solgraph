@@ -1,6 +1,6 @@
 {
-  "name": "solgraph",
-  "version": "0.3.3",
+  "name": "@~bcowell/solgraph",
+  "version": "0.3.4",
   "description": "Visualize Solidity control flow for smart contract security analysis.",
   "license": "ISC",
   "repository": "https://github.com/bcowell/solgraph",
@@ -54,8 +54,5 @@
     "graphlib": "^2.1.5",
     "graphlib-dot": "^0.6.2",
     "solidity-parser-antlr": "^0.4.11"
-  },
-  "publishConfig": {
-    "registry":"https://npm.pkg.github.com"
   }
 }

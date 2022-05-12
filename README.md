@@ -42,13 +42,13 @@ contract MyContract {
 ## Install
 
 ```sh
-npm install -g solgraph
+npm install -g @~bcowell/solgraph
 ```
 
 Depending on your permissions, you may need to add the `unsafe-perm` flag:
 
 ```sh
-sudo npm install -g solgraph --unsafe-perm=true --allow-root
+sudo npm install -g @~bcowell/solgraph --unsafe-perm=true --allow-root
 ```
 
 ## Usage
@@ -75,7 +75,7 @@ dot -Tpng MyContract.dot -o MyContract.png
 A nice example of piping contract source that is in your clipboard through solgraph, dot, and preview: (Use whatever image previewer is available on your system; Preview.app is available on Mac)
 
 ```sh
-pbpaste | solgraph | dot -Tpng | open -f -a /Applications/Preview.app
+pbpaste | solgraph | dot -Tpng | open -f -a Preview
 ```
 
 ## Node Module
